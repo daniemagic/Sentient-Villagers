@@ -4,15 +4,18 @@ const { GoalNear } = require('mineflayer-pathfinder').goals
 const pathfinder = require('mineflayer-pathfinder').pathfinder
 const Movements = require('mineflayer-pathfinder').Movements
 const { findBotByUsername, bots } = require('./botManager'); // Import the shared state module
+const { generateRandomPosition } = require('./utils'); // Import the utility function
 
 
 //global dialogue variable to store dialogue
 let dialogue = "";
 
-// Function to handle LLM-based social interactions between bots
+// BOT TO BOT handle LLM-based social interactions between bots
 async function botToBotSocialInteraction(bot, otherBot, llm, lastMessage = "") {
 
-    let prompt = `You are ${bot.username}, a person living in Minecraft. This is your background: ${bot.lore}.`;
+    const botMemories = await bot.memoryStream.getRelevantMemories('You just saw a person named ${otherBot.username} and decided you wanted to talk to them. What do you want to say to them?', 3);
+    console.log('Memories retrieved:', botMemories);
+    let prompt = `You are ${bot.username}, a person living in Minecraft. These are your most relevant memories: ${botMemories}.`;
     //if the conversation is not starting from scratch
     if (lastMessage) {
         prompt += `${otherBot.username} said this to you: '${lastMessage}'. A transcript of the full dialogue is the following: ${dialogue}. How do you respond?`;
@@ -20,6 +23,7 @@ async function botToBotSocialInteraction(bot, otherBot, llm, lastMessage = "") {
     //if conversation is starting from scratch
     else {
         dialogue = "";
+        //CONTEXT maybe substitute this out for a generic variable that can be whatever context is
         prompt += ` You just saw a person named ${otherBot.username} and decided you wanted to talk to them. What do you want to say to them?`;
     }
     prompt += " Keep your message brief, concise, and less than 100 characters.";
@@ -76,8 +80,9 @@ async function botToBotSocialInteraction(bot, otherBot, llm, lastMessage = "") {
 async function botToHumanSocialInteraction(bot, otherBot, llm, lastMessage = "") {
     // Ensure both bots are in 'Engaged' state during the conversation
     bot.conversationState = 'Engaged';
-
-    let prompt = `You are ${bot.username}, a person living in Minecraft. This is your background: ${bot.lore}.`;
+    const botMemories = await bot.memoryStream.getRelevantMemories('You just saw a person named ${otherBot.username} and decided you wanted to talk to them. What do you want to say to them?', 3);
+    
+    let prompt = `You are ${bot.username}, a person living in Minecraft. This is your background: ${botMemories}.`;
     if (lastMessage) {
         prompt += `${otherBot.username} said this to you: '${lastMessage}'. A transcript of the full dialogue is the following: ${dialogue}. How do you respond?`;
     } else {
@@ -229,9 +234,7 @@ function wander(bot) {
     }
   
     // Generate a random position within 10 blocks of the bot's current position
-    const x = bot.entity.position.x + (Math.random() * 2 - 1) * 10
-    const z = bot.entity.position.z + (Math.random() * 2 - 1) * 10
-    const y = bot.entity.position.y
+    const { x, y, z } = generateRandomPosition(bot, 10);
   
     // Set a random goal near this position
     const goal = new GoalNear(x, y, z, 1)
