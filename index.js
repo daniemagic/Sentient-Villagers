@@ -3,6 +3,7 @@ const mineflayer = require('mineflayer');
 const { startWandering, checkForNearbyPlayers, decideInteraction, wander, handleSocialInteraction } = require('./agent'); 
 const { pathfinder, Movements } = require('mineflayer-pathfinder');
 const { Ollama } = require('ollama'); // use LLM
+const { addBot, removeBot } = require('./botManager');
 
 // initialize ollama
 const llm = new Ollama({
@@ -20,12 +21,19 @@ const createBot = (options, lore) => {
 
   bot.once('spawn', () => {
     console.log(`${bot.username} has spawned`);
+    addBot(bot); // add bot to array
     startWandering(bot, llm);
 
     bot.stateInterval = setInterval(() => {
       console.log(`Interval tick. ${bot.username} state:`, bot.conversationState);
   }, 3000); 
 
+  });
+
+  //once bot disconnects remove bot
+  bot.once('end', () => {
+    console.log(`${bot.username} has disconnected`);
+    removeBot(bot); // Remove bot from the array on disconnect
   });
 
   bot.on('chat', (username, message) => {
@@ -41,14 +49,14 @@ const createBot = (options, lore) => {
 // Initialize both bots using the createBot function
 const bot1 = createBot({
   host: 'localhost',
-  port: 61760,
+  port: 54853,
   username: 'Hunter',
   lore: "You are a hunter in a society in Minecraft. Your job is to keep the people safe from mobs and hostile players"
 }, "");
 
 const bot2 = createBot({
   host: 'localhost',
-  port: 61760,
+  port: 54853,
   username: 'Farmer',
   lore: "You are a farmer in a society in Minecraft. Your job is to keep the people fed."
 }, "");
