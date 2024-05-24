@@ -103,31 +103,13 @@ class MemoryStream {
 }
 
 
-function perceiveAgentState(bot) {
-    const perception = {
-      health: bot.health,
-      food: bot.food,
-      position: bot.entity.position,
-      biome: bot.biome,
-      inventory: bot.inventory.items().map(item => item.name),
-    };
-        /* console.log(`Agent State for ${bot.username}:`);
-        console.log(`Health: ${perception.health}`);
-        console.log(`Food: ${perception.food}`);
-        console.log(`Position: ${perception.position}`);
-        console.log(`Biome: ${perception.biome}`);
-        console.log(`Inventory: ${perception.inventory.join(', ')}`); */
-        
-    return JSON.stringify(perception);
-
-    }
   
 
 async function generateReflection(bot, llm) {
     const relevantMemories = await bot.memoryStream.getRelevantMemories('', 3); // Get the 100 most recent memories
     const retrievedMemories = relevantMemories.map(mem => `Memory: ${mem.memory}, Timestamp: ${mem.timestamp}`);
   
-    const prompt = `Based on these memories: ${retrievedMemories}, what are the three most salient, high-level reflections for ${bot.username}? Do not preface your answers just start with your first reflection. Number your answer from 1-3. Keep each reflection less than 30 characters. For example: 1. (insert reflection here).`;
+    const prompt = `Based on these memories: ${retrievedMemories}, what is the most salient, high-level reflections for ${bot.username}? Do not preface your answers just start with your first reflection. Number your answer from 1-3. Keep each reflection less than 50 characters. For example: 1. (insert reflection here).`;
   
     try {
       const response = await llm.generate({
@@ -147,5 +129,5 @@ async function generateReflection(bot, llm) {
     }
   }
 
-  module.exports = { MemoryStream, generateReflection, perceiveAgentState};
+  module.exports = { MemoryStream, generateReflection };
   
