@@ -4,12 +4,16 @@ const { cosineSimilarity } = require('./utils'); // Import cosine similarity uti
 class MemoryStream {
   constructor(llm) {
     this.memories = [];
+    this.library = [];
     this.llm = llm;
   }
 
   async addMemory(memory) {
-    const timestamp = new Date();
+    const timestamp = new Date().toLocaleString();
     this.memories.push({ memory, timestamp });
+  }
+  async addSkill(skill){
+    this.library.push({ skill} )
   }
 
   async getImportanceScore(memory) {

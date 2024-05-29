@@ -56,6 +56,10 @@ async function botToBotSocialInteraction(bot, otherBot, llm, lastMessage = "") {
             } else {
                 otherBot.chat('*decides not to continue conversation*');
                 console.log("Conversation ends.");
+                //add the conversation to the memory stream of the bots
+                bot.memoryStream.addMemory(`Conversation with ${otherBot.username}: ${dialogue}`);
+                otherBot.memoryStream.addMemory(`Conversation with ${bot.username}: ${dialogue}`);
+                //set bots converesation state back to listening
                 otherBot.conversationState = 'Listening';
                 bot.conversationState = 'Listening';
                 startWandering(bot, llm);
@@ -124,6 +128,8 @@ async function botToHumanSocialInteraction(bot, otherBot, llm, lastMessage = "")
             } else {
                 console.log("Conversation ends.");
                 bot.chat('*decides not to continue conversation*');
+                //add memory to bot but not player since player is not mineflayer bot
+                bot.memoryStream.addMemory(`Conversation with ${otherBot.username}: ${dialogue}`);
                 bot.conversationState = 'Listening';
                 startWandering(bot, llm);
             }

@@ -4,7 +4,7 @@ const { startWandering, checkForNearbyPlayers, decideInteraction, wander, handle
 const { pathfinder, Movements } = require('mineflayer-pathfinder');
 const { Ollama } = require('ollama'); // use LLM
 const { addBot, removeBot } = require('./botManager');
-const { giveItemToBot, decideAction, generatePlan, perceiveAgentState } = require('./action');
+const { giveItemToBot, decideAction, getPlan, generateCode, generatePlan, perceiveAgentState } = require('./action');
 const { generateReflection, MemoryStream } = require('./memory.js');
 const armorManager = require('mineflayer-armor-manager')
 const pvp = require('mineflayer-pvp').plugin
@@ -24,7 +24,7 @@ const createBot = (options) => {
   bot.loadPlugin(pathfinder);
   bot.loadPlugin(pvp)
   bot.loadPlugin(armorManager)
-  
+
   bot.plan = options.plan; //keep blank so they can generate their own plan
   bot.profession = options.profession;
   bot.personality = options.personality;
@@ -43,6 +43,7 @@ const createBot = (options) => {
   
   bot.once('spawn', async () => {
     console.log(`${bot.username} has spawned`);
+    bot.chat('/gamemode survival');
     addBot(bot); // add bot to array
     
     //initial items given to bot
@@ -69,13 +70,17 @@ const createBot = (options) => {
     bot.lore = initMemories;
 
     startWandering(bot, llm);
-    generatePlan(bot, llm);
-
     //every day generate a new plan
-    bot.stateInterval = setInterval(() => {
-      bot.plan = '' //reset plan
-      generatePlan(bot, llm)
+    bot.stateInterval2 = setInterval(() => {
+      bot.plan = ''; //reset plan
+      console.log(`Generating plan for ${bot.username}..`)
+      generatePlan(bot, llm);
+      generateCode(bot, getPlan(bot), llm);
+
     }, 1200000); 
+
+    generatePlan(bot, llm);
+    generateCode(bot, getPlan(bot), llm);
 
     //interval tick every 3 secs
     bot.stateInterval = setInterval(() => {
@@ -131,7 +136,7 @@ const createBot = (options) => {
 // Initialize both bots using the createBot function
 const bot1 = createBot({
   host: 'localhost',
-  port: 51179,
+  port: 60857,
   username: 'Hunter',
   current_health: 20,
   current_hunger: 20,
@@ -147,7 +152,7 @@ const bot1 = createBot({
 
 const bot2 = createBot({
   host: 'localhost',
-  port: 51179,
+  port: 60857,
   username: 'Farmer',
   current_health: 20,
   current_hunger: 20,
