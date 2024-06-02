@@ -75,12 +75,12 @@ const createBot = (options) => {
       bot.plan = ''; //reset plan
       console.log(`Generating plan for ${bot.username}..`)
       generatePlan(bot, llm);
-      generateCode(bot, getPlan(bot), llm);
+      //generateCode(bot, getPlan(bot), llm);
 
     }, 1200000); 
 
     generatePlan(bot, llm);
-    generateCode(bot, getPlan(bot), llm);
+   // generateCode(bot, getPlan(bot), llm);
 
     //interval tick every 3 secs
     bot.stateInterval = setInterval(() => {
@@ -108,10 +108,35 @@ const createBot = (options) => {
   });
 
   bot.on('chat', (username, message) => {
-    if (message === 'stop') {
-      bot.quit('Stopping as requested.');
+    if (message === 'guard') {
+      const player = bot.players[username]
+  
+      if (!player) {
+        bot.chat("I can't see you.")
+        return
+      }
+  
+      bot.chat('I will guard that location.')
+      guardArea(player.entity.position)
     }
-  });
+  
+    if (message === 'fight me') {
+      const player = bot.players[username]
+  
+      if (!player) {
+        bot.chat("I can't see you.")
+        return
+      }
+  
+      bot.chat('Prepare to fight!')
+      bot.pvp.attack(player.entity)
+    }
+  
+    if (message === 'stop') {
+      bot.chat('I will no longer guard this area.')
+      stopGuarding()
+    }
+  })
 
   //collect items that drop
   bot.on('playerCollect', (collector, itemDrop) => {
@@ -136,7 +161,7 @@ const createBot = (options) => {
 // Initialize both bots using the createBot function
 const bot1 = createBot({
   host: 'localhost',
-  port: 60857,
+  port: 62940,
   username: 'Hunter',
   current_health: 20,
   current_hunger: 20,
@@ -152,7 +177,7 @@ const bot1 = createBot({
 
 const bot2 = createBot({
   host: 'localhost',
-  port: 60857,
+  port: 62940,
   username: 'Farmer',
   current_health: 20,
   current_hunger: 20,
